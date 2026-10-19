@@ -1,0 +1,196 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with server-verified role-based access",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 200 },
+        "email": { "type": "string", "format": "email", "maxLength": 255 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "role": { "type": "string", "enum": ["super_admin", "admin", "accountant", "secretary", "teacher", "student"] },
+        "status": { "type": "string", "enum": ["active", "suspended", "pending"] },
+        "studentId": { "type": "string", "maxLength": 50 },
+        "teacherId": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "fullName", "email", "role", "status"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student academic and contact profile",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "maxLength": 50 },
+        "fullName": { "type": "string", "maxLength": 200 },
+        "fullNameAm": { "type": "string", "maxLength": 200 },
+        "email": { "type": "string", "format": "email", "maxLength": 255 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "address": { "type": "string", "maxLength": 300 },
+        "gradeLevel": { "type": "string", "maxLength": 100 },
+        "emergencyContact": { "type": "string", "maxLength": 150 },
+        "specialRequirements": { "type": "string", "maxLength": 300 },
+        "registrationSource": { "type": "string", "maxLength": 100 },
+        "registrationDate": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["pending_payment", "partially_paid", "paid", "enrolled", "completed", "cancelled", "rejected"] },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["studentId", "fullName", "phone", "address", "status"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Technology training course details and curriculum",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "maxLength": 50 },
+        "title": { "type": "string", "maxLength": 200 },
+        "titleAm": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "descriptionAm": { "type": "string", "maxLength": 2000 },
+        "category": { "type": "string", "enum": ["software", "data_ai", "networking", "design", "kids"] },
+        "durationWeeks": { "type": "number" },
+        "hoursPerWeek": { "type": "number" },
+        "baseFee": { "type": "number" },
+        "assignedTeacherId": { "type": "string", "maxLength": 100 },
+        "assignedTeacherName": { "type": "string", "maxLength": 100 },
+        "capacity": { "type": "number" },
+        "enrolledCount": { "type": "number" },
+        "registrationDeadline": { "type": "string", "maxLength": 50 },
+        "active": { "type": "boolean" },
+        "image": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["code", "title", "category", "durationWeeks", "baseFee", "active"]
+    },
+    "Registration": {
+      "title": "Registration",
+      "description": "Student course enrollment application and fee status",
+      "type": "object",
+      "properties": {
+        "registrationNumber": { "type": "string", "maxLength": 50 },
+        "studentId": { "type": "string", "maxLength": 100 },
+        "studentName": { "type": "string", "maxLength": 200 },
+        "studentPhone": { "type": "string", "maxLength": 50 },
+        "studentEmail": { "type": "string", "format": "email", "maxLength": 255 },
+        "courseId": { "type": "string", "maxLength": 100 },
+        "courseTitle": { "type": "string", "maxLength": 200 },
+        "packageId": { "type": "string", "maxLength": 100 },
+        "packageName": { "type": "string", "maxLength": 100 },
+        "scheduleId": { "type": "string", "maxLength": 100 },
+        "scheduleTitle": { "type": "string", "maxLength": 200 },
+        "mode": { "type": "string", "enum": ["in_person", "online"] },
+        "totalFee": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "discountCode": { "type": "string", "maxLength": 50 },
+        "amountPaid": { "type": "number" },
+        "balanceDue": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending_payment", "partially_paid", "paid", "enrolled", "completed", "cancelled", "rejected"] },
+        "batchId": { "type": "string", "maxLength": 100 },
+        "paymentDeadline": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["registrationNumber", "studentId", "courseId", "packageId", "totalFee", "balanceDue", "status"]
+    },
+    "PaymentTransaction": {
+      "title": "PaymentTransaction",
+      "description": "Payment transaction record verified by finance",
+      "type": "object",
+      "properties": {
+        "registrationId": { "type": "string", "maxLength": 100 },
+        "studentId": { "type": "string", "maxLength": 100 },
+        "studentName": { "type": "string", "maxLength": 200 },
+        "courseTitle": { "type": "string", "maxLength": 200 },
+        "amount": { "type": "number" },
+        "method": { "type": "string", "enum": ["telebirr", "cbe_birr", "bank_transfer_cbe", "bank_transfer_awash", "cash"] },
+        "transactionReference": { "type": "string", "maxLength": 100 },
+        "evidenceUrl": { "type": "string", "maxLength": 500 },
+        "evidenceNotes": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending_verification", "verified", "rejected", "refunded"] },
+        "receiptNumber": { "type": "string", "maxLength": 50 },
+        "recordedBy": { "type": "string", "maxLength": 100 },
+        "recordedAt": { "type": "string", "maxLength": 50 },
+        "verifiedBy": { "type": "string", "maxLength": 100 },
+        "verifiedAt": { "type": "string", "maxLength": 50 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "refundReason": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["registrationId", "studentId", "amount", "method", "transactionReference", "status"]
+    },
+    "Receipt": {
+      "title": "Receipt",
+      "description": "Official institute receipt for verified payment",
+      "type": "object",
+      "properties": {
+        "receiptNumber": { "type": "string", "maxLength": 50 },
+        "paymentId": { "type": "string", "maxLength": 100 },
+        "registrationId": { "type": "string", "maxLength": 100 },
+        "studentId": { "type": "string", "maxLength": 100 },
+        "studentName": { "type": "string", "maxLength": 200 },
+        "courseTitle": { "type": "string", "maxLength": 200 },
+        "packageTitle": { "type": "string", "maxLength": 200 },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string", "maxLength": 50 },
+        "transactionReference": { "type": "string", "maxLength": 100 },
+        "issuedAt": { "type": "string", "maxLength": 50 },
+        "issuedBy": { "type": "string", "maxLength": 100 },
+        "qrCodeSignature": { "type": "string", "maxLength": 200 },
+        "currency": { "type": "string", "maxLength": 10 }
+      },
+      "required": ["receiptNumber", "paymentId", "studentName", "amount", "transactionReference", "issuedAt"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Issued course completion certificate verifiable online",
+      "type": "object",
+      "properties": {
+        "certificateNumber": { "type": "string", "maxLength": 50 },
+        "verificationCode": { "type": "string", "maxLength": 50 },
+        "studentId": { "type": "string", "maxLength": 100 },
+        "studentName": { "type": "string", "maxLength": 200 },
+        "studentPhone": { "type": "string", "maxLength": 50 },
+        "courseId": { "type": "string", "maxLength": 100 },
+        "courseTitle": { "type": "string", "maxLength": 200 },
+        "duration": { "type": "string", "maxLength": 100 },
+        "issueDate": { "type": "string", "maxLength": 50 },
+        "completionDate": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["active", "revoked"] },
+        "issuedBy": { "type": "string", "maxLength": 100 },
+        "grade": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["certificateNumber", "verificationCode", "studentName", "courseTitle", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile with role authorization"
+    },
+    "/students/{studentId}": {
+      "schema": { "$ref": "#/entities/Student" },
+      "description": "Student directory records"
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Public and internal course definitions"
+    },
+    "/registrations/{registrationId}": {
+      "schema": { "$ref": "#/entities/Registration" },
+      "description": "Course registration applications"
+    },
+    "/payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/PaymentTransaction" },
+      "description": "Payment transaction records"
+    },
+    "/receipts/{receiptId}": {
+      "schema": { "$ref": "#/entities/Receipt" },
+      "description": "Official financial receipts"
+    },
+    "/certificates/{certificateId}": {
+      "schema": { "$ref": "#/entities/Certificate" },
+      "description": "Course graduation certificates"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Zacma Technology Training Center Management System",
+  "description": "Enterprise-grade training center management platform for Zacma Technology in Ethiopia with student registration, Telebirr/bank payment verification, attendance, class scheduling, receipts, certificates, and multi-portal role-based access.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

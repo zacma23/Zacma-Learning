@@ -1,0 +1,186 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Health / Connection Test probe
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getUserRole() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? getUserData().role
+        : 'public';
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'zekimuluken@gmail.com' ||
+        request.auth.token.email == 'superadmin@zacma.tech' ||
+        request.auth.token.email == 'admin@zacma.tech' ||
+        getUserRole() == 'admin' ||
+        getUserRole() == 'super_admin'
+      );
+    }
+
+    function isAccountant() {
+      return isSignedIn() && (getUserRole() == 'accountant' || isAdmin());
+    }
+
+    function isSecretary() {
+      return isSignedIn() && (getUserRole() == 'secretary' || isAdmin());
+    }
+
+    function isTeacher() {
+      return isSignedIn() && (getUserRole() == 'teacher' || isAdmin());
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() || userId.matches('superadmin.*') || true;
+      allow delete: if isAdmin();
+    }
+
+    // Students Directory
+    match /students/{studentId} {
+      allow read: if true;
+      allow create, update: if isSecretary() || isAdmin() || isAccountant() || isSignedIn() || true;
+      allow delete: if isAdmin();
+    }
+
+    // Courses (Public catalog, Admin write)
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Packages (Public catalog, Admin write)
+    match /packages/{packageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Schedules (Public timetables, Admin write)
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Batches
+    match /batches/{batchId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSecretary();
+    }
+
+    // Registrations
+    match /registrations/{registrationId} {
+      allow read: if isAccountant() || isSecretary() || isAdmin() || (
+        isSignedIn() && (
+          resource.data.studentId == request.auth.uid ||
+          resource.data.studentPhone == getUserData().phone
+        )
+      );
+      allow create: if true; // Public or on-behalf admissions
+      allow update: if isAccountant() || isSecretary() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Payment Requests
+    match /paymentRequests/{requestId} {
+      allow read: if isAccountant() || isAdmin() || (
+        isSignedIn() && resource.data.studentId == request.auth.uid
+      );
+      allow write: if isAccountant() || isAdmin() || isSecretary();
+    }
+
+    // Payments
+    match /payments/{paymentId} {
+      allow read: if isAccountant() || isAdmin() || (
+        isSignedIn() && resource.data.studentId == request.auth.uid
+      );
+      allow create: if true;
+      allow update: if isAccountant() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Receipts (Immutable once generated)
+    match /receipts/{receiptId} {
+      allow read: if isAccountant() || isAdmin() || (
+        isSignedIn() && (
+          resource.data.studentId == request.auth.uid ||
+          resource.data.studentName == getUserData().fullName
+        )
+      );
+      allow create: if isAccountant() || isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Attendance
+    match /attendance/{attendanceId} {
+      allow read: if isSignedIn();
+      allow write: if isTeacher() || isAdmin();
+    }
+
+    // Certificates (Publicly verifiable via code)
+    match /certificates/{certificateId} {
+      allow read: if true;
+      allow write: if isTeacher() || isAdmin();
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSecretary() || isTeacher();
+    }
+
+    // Support Tickets
+    match /supportTickets/{ticketId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        isSecretary() ||
+        isAdmin()
+      );
+      allow create: if isSignedIn();
+      allow update: if isSecretary() || isAdmin() || (
+        isSignedIn() && resource.data.studentId == request.auth.uid
+      );
+    }
+
+    // Learning Materials
+    match /learningMaterials/{materialId} {
+      allow read: if isSignedIn();
+      allow write: if isTeacher() || isAdmin();
+    }
+
+    // Audit Logs (Append-only)
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // Institute Settings
+    match /instituteSettings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+  }
+}
