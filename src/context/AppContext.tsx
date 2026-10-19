@@ -195,8 +195,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [schedules, setSchedules] = useState<TrainingSchedule[]>(initialSchedules);
   const [courses, setCourses] = useState<Course[]>(initialCourses);
   const [batches, setBatches] = useState<Batch[]>(initialBatches);
-  const [students, setStudents] = useState<Student[]>(initialStudents);
-  const [registrations, setRegistrations] = useState<Registration[]>(initialRegistrations);
+  const [students, setStudents] = useState<Student[]>(() => {
+    try {
+      const saved = localStorage.getItem('zacma_saved_students');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const ids = new Set(parsed.map((s: Student) => s.id));
+          return [...parsed, ...initialStudents.filter((s) => !ids.has(s.id))];
+        }
+      }
+    } catch {}
+    return initialStudents;
+  });
+
+  const [registrations, setRegistrations] = useState<Registration[]>(() => {
+    try {
+      const saved = localStorage.getItem('zacma_saved_registrations');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const ids = new Set(parsed.map((r: Registration) => r.id));
+          return [...parsed, ...initialRegistrations.filter((r) => !ids.has(r.id))];
+        }
+      }
+    } catch {}
+    return initialRegistrations;
+  });
   const [payments, setPayments] = useState<PaymentTransaction[]>(initialPayments);
   const [receipts, setReceipts] = useState<Receipt[]>(initialReceipts);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>(initialAttendance);
@@ -450,27 +475,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const unsubStudents = onSnapshot(collection(db, 'students'), (snap) => {
       if (!snap.empty) {
-        setStudents(snap.docs.map((d) => d.data() as Student));
+        const liveStudents = snap.docs.map((d) => d.data() as Student);
+        setStudents(liveStudents);
+        try { localStorage.setItem('zacma_saved_students', JSON.stringify(liveStudents)); } catch {}
       }
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'students'));
+    }, (err) => console.warn('Students snapshot warning:', err));
 
     const unsubRegistrations = onSnapshot(collection(db, 'registrations'), (snap) => {
       if (!snap.empty) {
-        setRegistrations(snap.docs.map((d) => d.data() as Registration));
+        const liveRegs = snap.docs.map((d) => d.data() as Registration);
+        setRegistrations(liveRegs);
+        try { localStorage.setItem('zacma_saved_registrations', JSON.stringify(liveRegs)); } catch {}
       }
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'registrations'));
+    }, (err) => console.warn('Registrations snapshot warning:', err));
 
     const unsubPayments = onSnapshot(collection(db, 'payments'), (snap) => {
       if (!snap.empty) {
-        setPayments(snap.docs.map((d) => d.data() as PaymentTransaction));
+        const livePayments = snap.docs.map((d) => d.data() as PaymentTransaction);
+        setPayments(livePayments);
+        try { localStorage.setItem('zacma_saved_payments', JSON.stringify(livePayments)); } catch {}
       }
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'payments'));
+    }, (err) => console.warn('Payments snapshot warning:', err));
 
     const unsubReceipts = onSnapshot(collection(db, 'receipts'), (snap) => {
       if (!snap.empty) {
-        setReceipts(snap.docs.map((d) => d.data() as Receipt));
+        const liveReceipts = snap.docs.map((d) => d.data() as Receipt);
+        setReceipts(liveReceipts);
+        try { localStorage.setItem('zacma_saved_receipts', JSON.stringify(liveReceipts)); } catch {}
       }
-    }, (err) => handleFirestoreError(err, OperationType.LIST, 'receipts'));
+    }, (err) => console.warn('Receipts snapshot warning:', err));
 
     const unsubAttendance = onSnapshot(collection(db, 'attendance'), (snap) => {
       if (!snap.empty) {
@@ -1143,12 +1176,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addSupportTicket = async (subject: string, message: string) => {
-    const student = students.find((s) => s.id === currentUser.id) || students[0];
+    const student = students.find(
+      (s) => s.id === currentUser.id || s.studentId === currentUser.studentId || (currentUser.email && s.email?.toLowerCase() === currentUser.email.toLowerCase())
+    );
     const newTicket: SupportTicket = {
       id: `tkt-${Date.now()}`,
-      studentId: student.id,
-      studentName: student.fullName,
-      studentPhone: student.phone,
+      studentId: student ? student.id : currentUser.id,
+      studentName: student ? student.fullName : currentUser.name,
+      studentPhone: student ? student.phone : currentUser.phone,
       subject,
       message,
       status: 'open',
@@ -1159,7 +1194,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSupportTickets((prev) => [newTicket, ...prev]);
     try {
       await setDoc(doc(db, 'supportTickets', newTicket.id), newTicket);
-      await addAuditLog('SUPPORT_TICKET_OPENED', `Student ${student.fullName} submitted ticket: "${subject}"`);
+      await addAuditLog('SUPPORT_TICKET_OPENED', `Student ${newTicket.studentName} submitted ticket: "${subject}"`);
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, `supportTickets/${newTicket.id}`);
     }

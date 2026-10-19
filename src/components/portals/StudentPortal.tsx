@@ -45,25 +45,61 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
     recordPaymentTransaction,
   } = useApp();
 
-  // Active student profile: matches currentUser.studentId or first student in DB
-  const myStudent =
-    students.find((s) => s.studentId === currentUser.studentId) ||
-    students.find((s) => s.id === currentUser.id) ||
-    students[0];
+  // Active student profile: strictly matched to currentUser to prevent opening another student's records
+  const myStudent = React.useMemo(() => {
+    if (currentUser.studentId) {
+      const match = students.find((s) => s.studentId === currentUser.studentId);
+      if (match) return match;
+    }
+    if (currentUser.id && currentUser.id !== 'usr-guest') {
+      const match = students.find((s) => s.id === currentUser.id);
+      if (match) return match;
+    }
+    if (currentUser.email && currentUser.email !== 'guest@zacmaa.net') {
+      const match = students.find((s) => s.email?.toLowerCase() === currentUser.email?.toLowerCase());
+      if (match) return match;
+    }
+    if (currentUser.phone && currentUser.phone !== '+251 91 000 0000') {
+      const match = students.find((s) => s.phone === currentUser.phone);
+      if (match) return match;
+    }
+    return null;
+  }, [students, currentUser]);
 
-  const myRegistrations = registrations.filter(
-    (r) => r.studentId === myStudent?.id || r.studentPhone === myStudent?.phone
-  );
+  const myRegistrations = React.useMemo(() => {
+    return registrations.filter((r) => {
+      if (myStudent) {
+        return r.studentId === myStudent.id || r.studentPhone === myStudent.phone || (myStudent.email && r.studentEmail?.toLowerCase() === myStudent.email.toLowerCase());
+      }
+      return (currentUser.email && currentUser.email !== 'guest@zacmaa.net' && r.studentEmail?.toLowerCase() === currentUser.email.toLowerCase()) ||
+             (currentUser.phone && currentUser.phone !== '+251 91 000 0000' && r.studentPhone === currentUser.phone) ||
+             (currentUser.id && r.studentId === currentUser.id);
+    });
+  }, [registrations, myStudent, currentUser]);
 
-  const myPayments = payments.filter((p) => p.studentId === myStudent?.id);
+  const myPayments = React.useMemo(() => {
+    return payments.filter((p) => {
+      if (myStudent) {
+        return p.studentId === myStudent.id || p.studentName === myStudent.fullName;
+      }
+      return myRegistrations.some((r) => r.id === p.registrationId);
+    });
+  }, [payments, myStudent, myRegistrations]);
 
-  const myReceipts = receipts.filter(
-    (r) => r.studentId === myStudent?.studentId || r.studentName === myStudent?.fullName
-  );
+  const myReceipts = React.useMemo(() => {
+    return receipts.filter((r) => {
+      if (myStudent) {
+        return r.studentId === myStudent.studentId || r.studentId === myStudent.id || r.studentName === myStudent.fullName;
+      }
+      return myRegistrations.some((reg) => reg.id === r.registrationId);
+    });
+  }, [receipts, myStudent, myRegistrations]);
 
-  const myBatches = batches.filter((b) =>
-    myStudent ? b.enrolledStudentIds.includes(myStudent.id) : false
-  );
+  const myBatches = React.useMemo(() => {
+    return batches.filter((b) =>
+      myStudent ? b.enrolledStudentIds.includes(myStudent.id) : false
+    );
+  }, [batches, myStudent]);
 
   // Student Attendance
   const myAttendanceRecords: { status: 'present' | 'absent' | 'late' | 'excused'; date: string; topic: string }[] = [];
@@ -142,22 +178,22 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
         <div className="rounded-3xl bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center font-bold text-2xl text-white">
-              {myStudent?.fullName.charAt(0) || 'S'}
+              {(myStudent?.fullName || currentUser.name || 'S').charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-                  {myStudent?.fullName}
+                  {myStudent?.fullName || currentUser.name || 'Student Learner'}
                 </h1>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold uppercase">
-                  {myStudent?.status}
+                  {myStudent?.status || (myRegistrations.length > 0 ? myRegistrations[0].status : 'Active')}
                 </span>
               </div>
               <p className="text-xs text-blue-200 mt-0.5">
-                Official Student ID: <strong className="font-mono text-white">{myStudent?.studentId}</strong> • {myStudent?.phone}
+                Official Student ID: <strong className="font-mono text-white">{myStudent?.studentId || currentUser.studentId || 'ZACMA-STU-ENROLLED'}</strong> • {myStudent?.phone || currentUser.phone || 'Ethiopia'}
               </p>
               <p className="text-[11px] text-blue-300 mt-1">
-                {myStudent?.address} • {myStudent?.gradeLevel}
+                {myStudent?.address || 'Addis Ababa, Ethiopia'} • {myStudent?.gradeLevel || 'Technology Boot Camp Learner'}
               </p>
             </div>
           </div>

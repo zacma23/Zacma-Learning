@@ -5,6 +5,7 @@ import { UserRole } from '../../types/index';
 import {
   GraduationCap,
   Phone,
+  Mail,
   Clock,
   Globe,
   Sun,
@@ -104,9 +105,13 @@ export const Navbar: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Bole Road, Mega Building 4th Floor, Addis Ababa
             </span>
-            <span className="hidden sm:inline-flex items-center gap-1 text-slate-400">
-              <Phone className="w-3.5 h-3.5 text-blue-400" />
-              {settings.phonePrimary}
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-slate-300 font-mono text-[11px]">
+              <Phone className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span>+251911936641 / +251911936641</span>
+            </span>
+            <span className="hidden lg:inline-flex items-center gap-1.5 text-slate-300 font-mono text-[11px]">
+              <Mail className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span>info@zacmaa.net</span>
             </span>
             <span className="hidden md:inline-flex items-center gap-1 text-slate-400">
               <Clock className="w-3.5 h-3.5 text-amber-400" />

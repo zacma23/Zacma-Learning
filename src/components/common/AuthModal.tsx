@@ -12,6 +12,7 @@ import {
   CheckCircle,
   KeyRound,
   Shield,
+  GraduationCap,
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -129,28 +130,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
-        {/* Super Admin Quick Credentials Box */}
+        {/* Master & Test Credentials Box */}
         {mode === 'login' && (
-          <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 font-bold text-indigo-950 dark:text-indigo-200">
-                <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Super Admin Master Access</span>
+          <div className="space-y-2">
+            {/* Super Admin Quick Credentials Box */}
+            <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 font-bold text-indigo-950 dark:text-indigo-200">
+                  <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <span>Super Admin Master</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('superadmin@zacma.tech');
+                    setPassword('SuperAdmin@2026!');
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] transition shadow-xs cursor-pointer"
+                >
+                  Auto-fill
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('superadmin@zacma.tech');
-                  setPassword('SuperAdmin@2026!');
-                }}
-                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] transition shadow-xs cursor-pointer"
-              >
-                Auto-fill
-              </button>
+              <div className="mt-1 text-[11px] text-indigo-800 dark:text-indigo-300 font-mono space-y-0.5">
+                <div>Email: <span className="font-bold select-all text-slate-900 dark:text-white">superadmin@zacma.tech</span></div>
+                <div>Password: <span className="font-bold select-all text-slate-900 dark:text-white">SuperAdmin@2026!</span></div>
+              </div>
             </div>
-            <div className="mt-2 text-[11px] text-indigo-800 dark:text-indigo-300 font-mono space-y-0.5">
-              <div>Email: <span className="font-bold select-all text-slate-900 dark:text-white">superadmin@zacma.tech</span></div>
-              <div>Password: <span className="font-bold select-all text-slate-900 dark:text-white">SuperAdmin@2026!</span></div>
+
+            {/* Test Student Quick Credentials Box */}
+            <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 font-bold text-blue-950 dark:text-blue-200">
+                  <GraduationCap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span>Test Student Account</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail('teststudent@zacma.tech');
+                    setPassword('Student@2026!');
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] transition shadow-xs cursor-pointer"
+                >
+                  Auto-fill
+                </button>
+              </div>
+              <div className="mt-1 text-[11px] text-blue-800 dark:text-blue-300 font-mono space-y-0.5">
+                <div>Email: <span className="font-bold select-all text-slate-900 dark:text-white">teststudent@zacma.tech</span></div>
+                <div>Password: <span className="font-bold select-all text-slate-900 dark:text-white">Student@2026!</span></div>
+              </div>
             </div>
           </div>
         )}
